@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColorVision | Image Processing Lab</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 55%, #4facfe 100%); color: #25213b; overflow-x: hidden; }
+        .circle { position: fixed; border-radius: 50%; filter: blur(2px); opacity: 0.25; z-index: 0; }
+        .circle1 { width: 300px; height: 300px; background: #ffea00; top: -100px; left: -80px; }
+        .circle2 { width: 350px; height: 350px; background: #00ffff; right: -120px; top: 25%; }
+        .circle3 { width: 250px; height: 250px; background: #ff4ecd; bottom: -80px; left: 30%; }
+        .container { width: 94%; max-width: 1250px; margin: auto; position: relative; z-index: 2; padding: 25px 0 40px; }
+
+        .navbar { background: rgba(255,255,255,0.92); border-radius: 20px; padding: 15px 22px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 35px rgba(40,20,80,0.20); margin-bottom: 25px; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .logo { width: 50px; height: 50px; border-radius: 15px; display: flex; justify-content: center; align-items: center; font-size: 27px; color: white; background: linear-gradient(135deg, #ff512f, #dd2476); box-shadow: 0 7px 20px rgba(221,36,118,0.35); }
+        .brand h2 { color: #33245f; font-size: 22px; }
+        .brand h2 span { color: #e91e63; }
+        .brand small { display: block; color: #8d83a5; font-size: 9px; letter-spacing: 2px; margin-top: 3px; }
+
+        .status { background: #e8fff1; color: #159447; border: 1px solid #b8f1ce; padding: 9px 15px; border-radius: 30px; font-size: 12px; font-weight: bold; }
+        .status-dot { width: 8px; height: 8px; display: inline-block; background: #18c964; border-radius: 50%; margin-right: 5px; }
+
+        .hero { background: rgba(255,255,255,0.94); border-radius: 30px; padding: 45px; display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 30px; align-items: center; box-shadow: 0 20px 50px rgba(40,20,80,0.20); margin-bottom: 25px; }
+        .badge { display: inline-block; background: linear-gradient(90deg, #fff0f6, #f0eaff); color: #8e35c7; padding: 9px 15px; border-radius: 30px; font-size: 11px; font-weight: bold; margin-bottom: 18px; }
+        .hero h1 { font-size: 52px; line-height: 1.1; color: #292044; }
+        .hero h1 span { background: linear-gradient(90deg, #ff512f, #dd2476, #7b2ff7, #00a8ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero p { color: #766f88; line-height: 1.7; max-width: 650px; margin-top: 18px; font-size: 15px; }
+
+        .hero-features { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+        .hero-features span { padding: 9px 13px; border-radius: 10px; background: #f6f2ff; color: #6047a8; font-size: 11px; font-weight: bold; }
+
+        .hero-art { height: 280px; border-radius: 25px; position: relative; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #6a11cb, #2575fc, #ff4ecd); overflow: hidden; box-shadow: 0 15px 35px rgba(92,64,180,0.30); }
+        .hero-art::before { content: ""; position: absolute; width: 230px; height: 230px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); animation: rotate 10s linear infinite; }
+        .hero-art::after { content: ""; position: absolute; width: 170px; height: 170px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.3); }
+        .art-icon { width: 110px; height: 110px; background: rgba(255,255,255,0.22); border: 2px solid rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 30px; display: flex; justify-content: center; align-items: center; font-size: 55px; color: white; z-index: 2; animation: float 3s ease-in-out infinite; }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        .error { background: #fff0f2; border: 1px solid #ffb5c0; color: #c2185b; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 13px; }
+
+        .main { display: grid; grid-template-columns: 390px 1fr; gap: 22px; }
+        .card { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 25px; box-shadow: 0 15px 40px rgba(40,20,80,0.18); }
+
+        .card-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .number { width: 42px; height: 42px; border-radius: 13px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 13px; }
+        .purple { background: linear-gradient(135deg, #7b2ff7, #f107a3); }
+        .pink { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .blue { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+        .card-title small { display: block; color: #aaa0b9; font-size: 9px; letter-spacing: 1.5px; }
+        .card-title h2 { color: #33294b; font-size: 19px; margin-top: 3px; }
+
+        .upload { border: 3px dashed #c8b3f5; border-radius: 20px; min-height: 190px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; background: linear-gradient(135deg, #faf6ff, #fff4fb); transition: 0.3s; }
+        .upload:hover { border-color: #9c4dff; background: linear-gradient(135deg, #f3e9ff, #ffeaf7); transform: translateY(-3px); }
+        .upload-icon { width: 65px; height: 65px; border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 30px; color: white; background: linear-gradient(135deg, #7b2ff7, #f107a3); margin-bottom: 12px; box-shadow: 0 10px 25px rgba(123,47,247,0.3); }
+        .upload h3 { color: #382c4e; font-size: 15px; margin-bottom: 5px; }
+        .upload p { color: #92889f; font-size: 11px; }
+
+        .file-types { display: flex; gap: 5px; margin-top: 13px; }
+        .file-types span { background: white; color: #755b9e; border: 1px solid #e4d9f0; border-radius: 6px; padding: 5px 7px; font-size: 8px; font-weight: bold; }
+
+        #image { display: none; }
+        #filename { margin-top: 10px; padding: 10px; border-radius: 10px; background: #f1e7ff; color: #7438ba; font-size: 11px; font-weight: bold; word-break: break-word; }
+
+        .operation-heading { margin-top: 25px; margin-bottom: 14px; }
+        .operations { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+        .operation input { display: none; }
+        .operation label { min-height: 70px; display: flex; align-items: center; gap: 9px; padding: 10px; border-radius: 13px; border: 2px solid #eee8f5; background: white; cursor: pointer; transition: 0.25s; }
+        .operation label:hover { transform: translateY(-2px); border-color: #c2a6ff; }
+
+        .effect-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 17px; flex-shrink: 0; }
+        .original-icon { background: #e8ddff; }
+        .gray-icon { background: #e5e7eb; }
+        .binary-icon { background: #dbeafe; }
+        .blur-icon { background: #cffafe; }
+        .edge-icon { background: #ffe0f0; }
+        .threshold-icon { background: #ffedd5; }
+        .dilate-icon { background: #d1fae5; }
+        .erode-icon { background: #fef08a; }
+        .average-icon { background: #e0f2fe; }
+        .gaussian-icon { background: #f3e8ff; }
+        .laplacian-icon { background: #ffe4e6; }
+
+        .effect-text strong { display: block; font-size: 10px; color: #3b314a; }
+        .effect-text small { display: block; color: #a19aaa; font-size: 8px; margin-top: 3px; }
+
+        .tick { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #dcd4e5; color: transparent; display: flex; justify-content: center; align-items: center; font-size: 9px; }
+        .operation input:checked + label { border-color: #8b5cf6; background: linear-gradient(135deg, #f5efff, #fff0fa); box-shadow: 0 5px 15px rgba(139,92,246,0.12); }
+        .operation input:checked + label .tick { background: #8b5cf6; border-color: #8b5cf6; color: white; }
+
+        #processButton { width: 100%; margin-top: 17px; border: none; padding: 16px; border-radius: 14px; color: white; font-size: 14px; font-weight: bold; cursor: pointer; background: linear-gradient(90deg, #7b2ff7, #f107a3, #ff512f); box-shadow: 0 10px 25px rgba(241,7,163,0.25); transition: 0.3s; }
+        #processButton:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(241,7,163,0.35); }
+        #processButton:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+        .result-header { display: flex; justify-content: space-between; align-items: center; }
+        .ready { color: #13a557; background: #e9fff1; padding: 7px 11px; border-radius: 20px; font-size: 8px; font-weight: bold; }
+
+        .images { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .image-box { background: white; border: 2px solid #eee8f5; border-radius: 18px; padding: 12px; }
+        .image-box.output { border-color: #c9a9ff; }
+
+        .image-title { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .image-title span { display: block; color: #9b5de5; font-size: 8px; letter-spacing: 1px; font-weight: bold; }
+        .image-title h3 { color: #393044; font-size: 12px; margin-top: 3px; }
+        .image-number { color: #b9abc9; font-size: 11px; }
+
+        .image-wrapper { height: 310px; border-radius: 13px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #f7f3ff, #f0faff); }
+        .image-wrapper img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .download { display: block; text-align: center; margin-top: 10px; padding: 11px; border-radius: 10px; color: white; text-decoration: none; font-size: 10px; font-weight: bold; background: linear-gradient(90deg, #00b09b, #96c93d); }
+        .download:hover { transform: translateY(-2px); }
+
+        .empty { min-height: 390px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .empty-icon { width: 100px; height: 100px; border-radius: 30px; display: flex; justify-content: center; align-items: center; font-size: 45px; color: white; background: linear-gradient(135deg, #7b2ff7, #f107a3, #ff512f); box-shadow: 0 15px 35px rgba(123,47,247,0.25); animation: float 3s infinite; }
+        .empty h3 { color: #3a3049; font-size: 17px; margin-top: 20px; }
+        .empty p { color: #9a91a2; font-size: 11px; line-height: 1.7; margin-top: 7px; }
+        .powered { margin-top: 15px; color: #8b5cf6; font-size: 9px; font-weight: bold; }
+
+        .technologies { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 22px; }
+        .tech { background: rgba(255,255,255,0.94); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(40,20,80,0.10); }
+        .tech-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 20px; }
+        .python { background: #fff3c4; } .opencv { background: #d8f7ff; } .flask { background: #ffe0f0; } .web { background: #e8ddff; }
+        .tech strong { display: block; font-size: 11px; color: #40364d; }
+        .tech small { display: block; color: #a29aaa; font-size: 8px; margin-top: 3px; }
+
+        footer { margin-top: 22px; padding: 15px 5px; display: flex; justify-content: space-between; color: white; font-size: 10px; font-weight: 500; }
+        footer strong { font-size: 12px; }
+
+        @media(max-width: 900px) {
+            .hero { grid-template-columns: 1fr; padding: 30px; } .hero-art { display: none; }
+            .main { grid-template-columns: 1fr; } .technologies { grid-template-columns: 1fr 1fr; }
+        }
+        @media(max-width: 600px) {
+            .container { width: 94%; } .navbar { padding: 12px; } .status { display: none; }
+            .hero { padding: 25px 20px; } .hero h1 { font-size: 38px; }
+            .operations { grid-template-columns: 1fr; } .images { grid-template-columns: 1fr; }
+            .technologies { grid-template-columns: 1fr; } footer { flex-direction: column; gap: 7px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="circle circle1"></div><div class="circle circle2"></div><div class="circle circle3"></div>
+
+<div class="container">
+    <nav class="navbar">
+        <div class="brand">
+            <div class="logo">🎨</div>
+            <div><h2>Color<span>Vision</span></h2><small>IMAGE PROCESSING LAB</small></div>
+        </div>
+        <div class="status"><span class="status-dot"></span>OpenCV Online</div>
+    </nav>
+
+    <section class="hero">
+        <div>
+            <div class="badge">✨ AI & COMPUTER VISION PROJECT</div>
+            <h1>Make Your Images<br><span>More Powerful!</span></h1>
+            <p>Upload your image and apply professional image processing techniques using Python, Flask and OpenCV.</p>
+            <div class="hero-features">
+                <span>⚡ Fast Processing</span><span>🔐 Secure</span><span>🤖 OpenCV</span><span>🎨 Creative</span>
+            </div>
+        </div>
+        <div class="hero-art"><div class="art-icon">🖼️</div></div>
+    </section>
+
+    {% if error %}
+    <div class="error">⚠️<strong>{{ error }}</strong></div>
+    {% endif %}
+
+    <section class="main">
+        <div class="card">
+            <div class="card-title">
+                <div class="number purple">01</div>
+                <div><small>FIRST STEP</small><h2>Upload Image</h2></div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="imageForm">
+
+                <!-- If an image exists, pass it back to the server silently -->
+                {% if current_image %}
+                    <input type="hidden" name="current_image" id="current_image" value="{{ current_image }}">
+                {% endif %}
+
+                <label for="image" class="upload">
+                    <div class="upload-icon">
+                        {% if current_image %}🔄{% else %}📤{% endif %}
+                    </div>
+                    <h3>{% if current_image %}Image Loaded{% else %}Choose Your Image{% endif %}</h3>
+                    <p>{% if current_image %}Click here to change the image{% else %}Click here to select an image{% endif %}</p>
+                    <div class="file-types">
+                        <span>JPG</span><span>JPEG</span><span>PNG</span><span>BMP</span><span>WEBP</span>
+                    </div>
+                </label>
+
+                <!-- NOTE: 'required' attribute is removed so we can reuse the existing image -->
+                <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,.bmp,.webp">
+
+                <!-- Display logic for the active image name -->
+                <div id="filename" {% if current_image %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+                    {% if current_image %}📁 Active Image: {{ current_image }}{% endif %}
+                </div>
+
+                <div class="operation-heading">
+                    <div class="card-title">
+                        <div class="number pink">02</div>
+                        <div><small>SECOND STEP</small><h2>Choose Effect</h2></div>
+                    </div>
+                </div>
+
+                <div class="operations">
+                    <div class="operation">
+                        <input type="radio" id="original" name="operation" value="original" checked>
+                        <label for="original"><div class="effect-icon original-icon">🖼️</div><div class="effect-text"><strong>Original</strong><small>Keep original</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="gray" name="operation" value="gray">
+                        <label for="gray"><div class="effect-icon gray-icon">⚫</div><div class="effect-text"><strong>Grayscale</strong><small>Gray tones</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="binary" name="operation" value="binary">
+                        <label for="binary"><div class="effect-icon binary-icon">⚪</div><div class="effect-text"><strong>Binary</strong><small>Black & white</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="blur" name="operation" value="blur">
+                        <label for="blur"><div class="effect-icon blur-icon">💧</div><div class="effect-text"><strong>Blur</strong><small>Smooth image</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="edge" name="operation" value="edge">
+                        <label for="edge"><div class="effect-icon edge-icon">✨</div><div class="effect-text"><strong>Edge Detection</strong><small>Find edges</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="threshold" name="operation" value="threshold">
+                        <label for="threshold"><div class="effect-icon threshold-icon">🎯</div><div class="effect-text"><strong>Threshold</strong><small>Binary threshold</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="dilate" name="operation" value="dilate">
+                        <label for="dilate"><div class="effect-icon dilate-icon">➕</div><div class="effect-text"><strong>Dilation</strong><small>Expand features</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="erode" name="operation" value="erode">
+                        <label for="erode"><div class="effect-icon erode-icon">➖</div><div class="effect-text"><strong>Erosion</strong><small>Shrink features</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="average" name="operation" value="average">
+                        <label for="average"><div class="effect-icon average-icon">🌫️</div><div class="effect-text"><strong>Average Blur</strong><small>Uniform smoothing</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="gaussian" name="operation" value="gaussian">
+                        <label for="gaussian"><div class="effect-icon gaussian-icon">💨</div><div class="effect-text"><strong>Gaussian Blur</strong><small>Natural smoothing</small></div><div class="tick">✓</div></label>
+                    </div>
+                    <div class="operation">
+                        <input type="radio" id="laplacian" name="operation" value="laplacian">
+                        <label for="laplacian"><div class="effect-icon laplacian-icon">🔪</div><div class="effect-text"><strong>Laplacian Sharpen</strong><small>Enhance edges</small></div><div class="tick">✓</div></label>
+                    </div>
+                </div>
+
+                <button type="submit" id="processButton">⚡ Process My Image &nbsp;&nbsp; →</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="result-header">
+                <div class="card-title">
+                    <div class="number blue">03</div>
+                    <div><small>FINAL STEP</small><h2>Processing Result</h2></div>
+                </div>
+                <div class="ready">● READY</div>
+            </div>
+
+            {% if original_image and output_image %}
+            <div class="images">
+                <div class="image-box">
+                    <div class="image-title">
+                        <div><span>INPUT IMAGE</span><h3>Original</h3></div>
+                        <div class="image-number">01</div>
+                    </div>
+                    <div class="image-wrapper"><img src="{{ original_image }}" alt="Original Image"></div>
+                </div>
+
+                <div class="image-box output">
+                    <div class="image-title">
+                        <div><span>OUTPUT IMAGE</span><h3>Processed</h3></div>
+                        <div class="image-number">02</div>
+                    </div>
+                    <div class="image-wrapper"><img src="{{ output_image }}" alt="Processed Image"></div>
+                    <a href="{{ output_image }}" class="download" download="processed_image.jpg">⬇ Download Processed Image</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty">
+                <div class="empty-icon">🖼️</div>
+                <h3>Your Result Will Appear Here</h3>
+                <p>Upload an image from the left side<br>and select an image processing effect.</p>
+                <div class="powered">✦ Powered by Python + Flask + OpenCV</div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="technologies">
+        <div class="tech"><div class="tech-icon python">🐍</div><div><strong>Python</strong><small>Programming</small></div></div>
+        <div class="tech"><div class="tech-icon opencv">👁️</div><div><strong>OpenCV</strong><small>Computer Vision</small></div></div>
+        <div class="tech"><div class="tech-icon flask">🌐</div><div><strong>Flask</strong><small>Web Framework</small></div></div>
+        <div class="tech"><div class="tech-icon web">🎨</div><div><strong>HTML & CSS</strong><small>User Interface</small></div></div>
+    </section>
+
+    <footer>
+        <div><strong>🎨 ColorVision</strong> &nbsp; | &nbsp; Image Processing Laboratory</div>
+        <div>Python • Flask • OpenCV</div>
+    </footer>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const imageInput = document.getElementById("image");
+    const filename = document.getElementById("filename");
+    const form = document.getElementById("imageForm");
+    const processButton = document.getElementById("processButton");
+
+    // Display newly selected file name
+    imageInput.addEventListener("change", function () {
+        if (this.files.length > 0) {
+            const file = this.files[0];
+            filename.style.display = "block";
+            filename.innerHTML = "📁 New Selection: " + file.name;
+        }
+    });
+
+    // Validate image format if a new one is selected
+    imageInput.addEventListener("change", function () {
+        if (this.files.length === 0) return;
+
+        const file = this.files[0];
+        const allowedTypes = ["image/jpeg", "image/png", "image/bmp", "image/webp"];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Please select JPG, JPEG, PNG, BMP or WEBP image.");
+            this.value = "";
+
+            // Check if we already had a loaded image before rejecting the new bad one
+            const currentImageInput = document.getElementById("current_image");
+            if (currentImageInput && currentImageInput.value.trim() !== "") {
+                filename.innerHTML = "📁 Active Image: " + currentImageInput.value;
+            } else {
+                filename.style.display = "none";
+            }
+        }
+    });
+
+    // Submitting logic: Validate only if NO image has ever been uploaded
+    form.addEventListener("submit", function (e) {
+        const currentImageInput = document.getElementById("current_image");
+        const hasExistingImage = currentImageInput && currentImageInput.value.trim() !== "";
+
+        // Reject if file input is empty AND there's no stored current_image
+        if (imageInput.files.length === 0 && !hasExistingImage) {
+            alert("Please select an image first.");
+            e.preventDefault(); // Stop form submission
+            return;
+        }
+
+        processButton.disabled = true;
+        processButton.innerHTML = "⏳ Processing Image...";
+    });
+});
+</script>
+</body>
+</html>
